@@ -58,6 +58,11 @@
 	mtd-mac-address = <&factory 0x4>;
 };
 
+&esw{
+	resets = <&rstctrl 23>;
+	reset-names = "esw";
+};
+
 &wmac {
 	status = "okay";
 	ralink,mtd-eeprom = <&factory 0x4>;

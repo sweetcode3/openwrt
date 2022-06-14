@@ -457,7 +457,7 @@ static void esw_hw_init(struct rt305x_esw *esw)
 {
 	int i;
 	u8 port_disable = 0;
-	u8 port_map = RT305X_ESW_PMAP_LLLLLL;
+	u8 port_map = RT305X_ESW_PMAP_WLLLLL;
 
 	esw_reset(esw);
 
@@ -710,7 +710,7 @@ static void esw_hw_init(struct rt305x_esw *esw)
 	if (esw->port_map)
 		port_map = esw->port_map;
 	else
-		port_map = RT305X_ESW_PMAP_LLLLLL;
+		port_map = RT305X_ESW_PMAP_WLLLLL;
 
 	/* Unused HW feature, but still nice to be consistent here...
 	 * This is also exported to userspace ('lan' attribute) so it's
@@ -1223,6 +1223,34 @@ static int esw_set_vlan_ports(struct switch_dev *dev, struct switch_val *val)
 	return 0;
 }
 
+static void esw_vlan_init(struct rt305x_esw *esw)
+{
+	esw_reset_switch(&esw->swdev);
+	struct switch_val val;
+	struct switch_port ports[7];
+	val.port_vlan = 1;
+	val.len = 2;
+	val.value.i = 1;
+	esw_set_vlan_enable(&esw->swdev, NULL, &val);
+	val.value.ports = ports;
+	ports[0].id = 1;
+	ports[0].flags = 0;
+	ports[1].id = 6;
+	ports[1].flags = 4;
+	esw_set_port_pvid(&esw->swdev, RT305X_ESW_PORT1, 1);
+	esw_set_vlan_ports(&esw->swdev, &val);
+	val.port_vlan = 2;
+	val.len = 2;
+	val.value.ports = ports;
+	ports[0].id = 0;
+	ports[0].flags = 0;
+	ports[1].id = 6;
+	ports[1].flags = 4;
+	esw_set_port_pvid(&esw->swdev, RT305X_ESW_PORT0, 2);
+	esw_set_vlan_ports(&esw->swdev, &val);
+	esw_apply_config(&esw->swdev);
+}
+
 static const struct switch_attr esw_global[] = {
 	{
 		.type = SWITCH_TYPE_INT,
@@ -1455,6 +1483,7 @@ static int esw_probe(struct platform_device *pdev)
 		esw_w32(esw, ~RT305X_ESW_PORT_ST_CHG, RT305X_ESW_REG_IMR);
 	}
 
+	esw_vlan_init(esw);
 	return ret;
 }
 

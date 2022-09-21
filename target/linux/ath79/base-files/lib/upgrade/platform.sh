@@ -79,6 +79,11 @@ platform_check_image() {
                 return $?
                 ;;
         *)
+                local magic="$(get_magic_word "$1")"
+                [ "$magic" != "2705" ] && {
+                        echo "Invalid image type."
+                        return 1
+                }
                 return 0
                 ;;
         esac

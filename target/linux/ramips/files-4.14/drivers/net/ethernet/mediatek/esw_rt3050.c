@@ -816,7 +816,7 @@ static int esw_apply_config(struct switch_dev *dev)
 		esw_set_vmsc(esw, 0, RT305X_ESW_PORTS_ALL);
 	}
 
-	esw_reset_ephy(esw);
+	//esw_reset_ephy(esw);
 
 	return 0;
 }
@@ -828,6 +828,7 @@ static int esw_reset_switch(struct switch_dev *dev)
 	esw->global_vlan_enable = 0;
 	memset(esw->ports, 0, sizeof(esw->ports));
 	memset(esw->vlans, 0, sizeof(esw->vlans));
+	esw_hw_init(esw);
 
 	return 0;
 }

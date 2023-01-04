@@ -459,7 +459,7 @@ static void esw_hw_init(struct rt305x_esw *esw)
 	u8 port_disable = 0;
 	u8 port_map = RT305X_ESW_PMAP_WLLLLL;
 
-	esw_reset(esw);
+	//esw_reset(esw);
 
 	/* vodoo from original driver */
 	esw_w32(esw, 0xC8A07850, RT305X_ESW_REG_FCT0);
@@ -1462,6 +1462,7 @@ static int esw_probe(struct platform_device *pdev)
 
 	spin_lock_init(&esw->reg_rw_lock);
 
+	esw_reset(esw);
 	esw_hw_init(esw);
 
 	reg_init = of_get_property(np, "ralink,rgmii", NULL);

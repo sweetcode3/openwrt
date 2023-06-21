@@ -27,7 +27,7 @@ TARGET_DEVICES += glinet_gl-mifi
 define Device/glinet_gl-s200-nor
   ATH_SOC := qca9531
   DEVICE_TITLE := GL.iNet GL-S200 (NOR)
-  DEVICE_PACKAGES := kmod-usb2 kmod-usb-serial-ch341
+  DEVICE_PACKAGES := kmod-usb2 kmod-usb-serial kmod-usb-serial-ch341
   IMAGE_SIZE := 16000k
   SUPPORTED_DEVICES += gl-s200 glinet,gl-s200
 endef
@@ -36,7 +36,7 @@ TARGET_DEVICES += glinet_gl-s200-nor
 define Device/glinet_gl-s200-nor-nand
   ATH_SOC := qca9531
   DEVICE_TITLE := GL.iNet GL-S200 (NOR/NAND)
-  DEVICE_PACKAGES := kmod-usb2 block-mount kmod-usb-serial-ch341
+  DEVICE_PACKAGES := kmod-usb2 block-mount kmod-usb-serial kmod-usb-serial-ch341
   KERNEL_SIZE := 4096k
   BLOCKSIZE := 128k
   PAGESIZE := 2048
@@ -160,7 +160,7 @@ TARGET_DEVICES += glinet_gl-x750-nor-nand
 define Device/glinet_gl-xe300-nor
   ATH_SOC := qca9531
   DEVICE_TITLE := GL.iNet GL-XE300 (NOR)
-  DEVICE_PACKAGES := kmod-usb2 block-mount  kmod-usb-serial-ch341
+  DEVICE_PACKAGES := kmod-usb2 block-mount kmod-usb-serial  kmod-usb-serial-ch341
   IMAGE_SIZE := 16000k
   SUPPORTED_DEVICES += gl-xe300 glinet,gl-xe300
 endef
@@ -169,7 +169,7 @@ TARGET_DEVICES += glinet_gl-xe300-nor
 define Device/glinet_gl-xe300-nor-nand
   ATH_SOC := qca9531
   DEVICE_TITLE := GL.iNet GL-XE300 (NOR/NAND)
-  DEVICE_PACKAGES := kmod-usb2 block-mount kmod-usb-serial-ch341
+  DEVICE_PACKAGES := kmod-usb2 block-mount kmod-usb-serial kmod-usb-serial-ch341
 #  KERNEL_SIZE := 2048k
   KERNEL_SIZE := 4096k
   BLOCKSIZE := 128k
@@ -185,7 +185,7 @@ TARGET_DEVICES += glinet_gl-xe300-nor-nand
 define Device/glinet_gl-xe300-iot
   ATH_SOC := qca9531
   DEVICE_TITLE := GL.iNet GL-XE300 (NOR/NAND IOT)
-  DEVICE_PACKAGES := kmod-usb2 block-mount kmod-usb-serial-ch341
+  DEVICE_PACKAGES := kmod-usb2 block-mount  kmod-usb-serial kmod-usb-serial-ch341
   KERNEL_SIZE := 2048k
   BLOCKSIZE := 128k
   PAGESIZE := 2048

@@ -1,0 +1,113 @@
+From ca0c338c12d5b353e8da489859741267c7dc6379 Mon Sep 17 00:00:00 2001
+From: Michael Heimpold <mhei@heimpold.de>
+Date: Thu, 11 Apr 2019 21:01:07 +0200
+Subject: [PATCH] service: allow setting a dedicated group id
+
+Sometimes is desirable to run a process with a specific group id
+instead of the default one which is derived from passwd entry.
+
+However, we still want to initialize supplementary group ids
+(including the default one), thus we have to store the specific
+one in a dedicated structure element.
+
+Signed-off-by: Michael Heimpold <mhei@heimpold.de>
+---
+ service/instance.c | 25 ++++++++++++++++++++-----
+ service/instance.h |  4 +++-
+ 2 files changed, 23 insertions(+), 6 deletions(-)
+
+diff --git a/service/instance.c b/service/instance.c
+index a5742b7..3b92536 100644
+--- a/service/instance.c
++++ b/service/instance.c
+@@ -48,6 +48,7 @@ enum {
+ 	INSTANCE_ATTR_WATCH,
+ 	INSTANCE_ATTR_ERROR,
+ 	INSTANCE_ATTR_USER,
++	INSTANCE_ATTR_GROUP,
+ 	INSTANCE_ATTR_STDOUT,
+ 	INSTANCE_ATTR_STDERR,
+ 	INSTANCE_ATTR_NO_NEW_PRIVS,
+@@ -73,6 +74,7 @@ static const struct blobmsg_policy instance_attr[__INSTANCE_ATTR_MAX] = {
+ 	[INSTANCE_ATTR_WATCH] = { "watch", BLOBMSG_TYPE_ARRAY },
+ 	[INSTANCE_ATTR_ERROR] = { "error", BLOBMSG_TYPE_ARRAY },
+ 	[INSTANCE_ATTR_USER] = { "user", BLOBMSG_TYPE_STRING },
++	[INSTANCE_ATTR_GROUP] = { "group", BLOBMSG_TYPE_STRING },
+ 	[INSTANCE_ATTR_STDOUT] = { "stdout", BLOBMSG_TYPE_BOOL },
+ 	[INSTANCE_ATTR_STDERR] = { "stderr", BLOBMSG_TYPE_BOOL },
+ 	[INSTANCE_ATTR_NO_NEW_PRIVS] = { "no_new_privs", BLOBMSG_TYPE_BOOL },
+@@ -348,12 +350,12 @@ instance_run(struct service_instance *in, int _stdout, int _stderr)
+ 		closefd(_stderr);
+ 	}
+ 
+-	if (in->user && in->gid && initgroups(in->user, in->gid)) {
++	if (in->user && in->pw_gid && initgroups(in->user, in->pw_gid)) {
+ 		ERROR("failed to initgroups() for user %s: %m\n", in->user);
+ 		exit(127);
+ 	}
+-	if (in->gid && setgid(in->gid)) {
+-		ERROR("failed to set group id %d: %m\n", in->gid);
++	if (in->gr_gid && setgid(in->gr_gid)) {
++		ERROR("failed to set group id %d: %m\n", in->gr_gid);
+ 		exit(127);
+ 	}
+ 	if (in->uid && setuid(in->uid)) {
+@@ -623,10 +625,13 @@ instance_config_changed(struct service_instance *in, struct service_instance *in
+ 	if (string_changed(in->user, in_new->user))
+ 		return true;
+ 
++	if (string_changed(in->group, in_new->group))
++		return true;
++
+ 	if (in->uid != in_new->uid)
+ 		return true;
+ 
+-	if (in->gid != in_new->gid)
++	if (in->pw_gid != in_new->pw_gid)
+ 		return true;
+ 
+ 	if (string_changed(in->pidfile, in_new->pidfile))
+@@ -882,7 +887,16 @@ instance_config_parse(struct service_instance *in)
+ 		if (p) {
+ 			in->user = strdup(user);
+ 			in->uid = p->pw_uid;
+-			in->gid = p->pw_gid;
++			in->gr_gid = in->pw_gid = p->pw_gid;
++		}
++	}
++
++	if (tb[INSTANCE_ATTR_GROUP]) {
++		const char *group = blobmsg_get_string(tb[INSTANCE_ATTR_GROUP]);
++		struct group *p = getgrnam(group);
++		if (p) {
++			in->group = strdup(group);
++			in->gr_gid = p->gr_gid;
+ 		}
+ 	}
+ 
+@@ -1001,6 +1015,7 @@ instance_free(struct service_instance *in)
+ 	instance_config_cleanup(in);
+ 	free(in->config);
+ 	free(in->user);
++	free(in->group);
+ 	free(in);
+ }
+ 
+diff --git a/service/instance.h b/service/instance.h
+index 771406c..84ce002 100644
+--- a/service/instance.h
++++ b/service/instance.h
+@@ -44,7 +44,9 @@ struct service_instance {
+ 
+ 	char *user;
+ 	uid_t uid;
+-	gid_t gid;
++	gid_t pw_gid;
++	char *group;
++	gid_t gr_gid;
+ 
+ 	bool halt;
+ 	bool restart;
+-- 
+2.25.1
+
